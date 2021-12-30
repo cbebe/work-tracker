@@ -19,5 +19,5 @@ func (r RecordType) String() string {
 
 type Work interface {
 	GetRecordType() RecordType
-	GetTimeStamp() int64
+	GetTimestamp() int64
 }

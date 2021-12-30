@@ -11,6 +11,7 @@ import (
 type WorkStore interface {
 	StartWork()
 	StopWork()
+	GetWork() []Work
 }
 
 type SqliteWorkStore struct {
@@ -38,8 +39,17 @@ func (s *SqliteWorkStore) StopWork() {
 	s.newWork(Stop)
 }
 
+func (s *SqliteWorkStore) GetWork() []Work {
+	var workRecords []WorkRecord
+	s.db.Find(&workRecords)
+	works := make([]Work, len(workRecords))
+	for i, v := range workRecords {
+		works[i] = v
+	}
+	return works
+}
+
 type WorkRecord struct {
-	gorm.Model
 	RecordType RecordType
 	Timestamp  int64
 }

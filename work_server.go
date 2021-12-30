@@ -1,6 +1,7 @@
 package worktracker
 
 import (
+	"fmt"
 	"net/http"
 )
 
@@ -15,6 +16,7 @@ func NewWorkServer(store WorkStore) *WorkServer {
 	w.store = store
 
 	router := http.NewServeMux()
+	router.Handle("/all", http.HandlerFunc(w.getWorkHandler))
 	router.Handle("/start", http.HandlerFunc(w.startWorkHandler))
 	router.Handle("/stop", http.HandlerFunc(w.stopWorkHandler))
 	w.Handler = router
@@ -25,6 +27,14 @@ func NewWorkServer(store WorkStore) *WorkServer {
 func (s *WorkServer) startWorkHandler(w http.ResponseWriter, r *http.Request) {
 	s.store.StartWork()
 	w.WriteHeader(http.StatusOK)
+}
+
+func (s *WorkServer) getWorkHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	for _, work := range s.store.GetWork() {
+		fmt.Fprintf(w, "%s %d\n", work.GetRecordType().String(), work.GetTimestamp())
+	}
 }
 
 func (s *WorkServer) stopWorkHandler(w http.ResponseWriter, r *http.Request) {
