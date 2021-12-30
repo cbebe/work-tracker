@@ -4,13 +4,17 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"strconv"
 
 	worktracker "github.com/cbebe/worktracker"
 )
 
-const port = 8080
-
 func main() {
+	port, err := strconv.Atoi(os.Getenv("PORT"))
+	if err != nil {
+		log.Fatalf("port not set: %v", err)
+	}
 	store, err := worktracker.NewSqliteWorkStore("work.db")
 
 	if err != nil {
@@ -19,4 +23,7 @@ func main() {
 
 	server := worktracker.NewWorkServer(store)
 	http.ListenAndServe(fmt.Sprintf(":%d", port), server)
+	if err != nil {
+		log.Fatalf("error starting http server: %v", err)
+	}
 }
