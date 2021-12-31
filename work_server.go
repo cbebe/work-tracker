@@ -1,7 +1,9 @@
 package worktracker
 
 import (
+	"fmt"
 	"net/http"
+	"os"
 )
 
 type WorkServer struct {
@@ -10,31 +12,50 @@ type WorkServer struct {
 }
 
 func NewWorkServer(store WorkStore) *WorkServer {
-	w := new(WorkServer)
+	s := new(WorkServer)
 
-	w.store = store
+	s.store = store
 
 	router := http.NewServeMux()
-	router.Handle("/all", http.HandlerFunc(w.getWorkHandler))
-	router.Handle("/start", http.HandlerFunc(w.startWorkHandler))
-	router.Handle("/stop", http.HandlerFunc(w.stopWorkHandler))
-	w.Handler = router
+	router.Handle("/all", http.HandlerFunc(s.getWorkHandler))
+	router.Handle("/start", http.HandlerFunc(s.startWorkHandler))
+	router.Handle("/stop", http.HandlerFunc(s.stopWorkHandler))
+	s.Handler = router
 
-	return w
+	return s
+}
+
+func handleError(w http.ResponseWriter, err error) {
+	fmt.Fprint(os.Stdout, err)
+	w.WriteHeader(http.StatusInternalServerError)
 }
 
 func (s *WorkServer) startWorkHandler(w http.ResponseWriter, r *http.Request) {
-	s.store.StartWork()
+	if err := s.store.StartWork(); err != nil {
+		handleError(w, err)
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
 }
 
 func (s *WorkServer) getWorkHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	works, err := s.store.GetWork()
+	if err != nil {
+		handleError(w, err)
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
-	PrintWork(w, s.store.GetWork())
+	PrintWork(w, works)
 }
 
 func (s *WorkServer) stopWorkHandler(w http.ResponseWriter, r *http.Request) {
-	s.store.StopWork()
+	if err := s.store.StopWork(); err != nil {
+		handleError(w, err)
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
 }

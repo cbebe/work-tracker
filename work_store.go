@@ -9,9 +9,9 @@ import (
 )
 
 type WorkStore interface {
-	StartWork()
-	StopWork()
-	GetWork() []Work
+	StartWork() error
+	StopWork() error
+	GetWork() ([]Work, error)
 }
 
 type SqliteWorkStore struct {
@@ -27,26 +27,29 @@ func NewSqliteWorkStore(path string) (*SqliteWorkStore, error) {
 	return &SqliteWorkStore{db}, nil
 }
 
-func (s *SqliteWorkStore) newWork(r RecordType) {
-	s.db.Create(&WorkRecord{RecordType: r, Timestamp: time.Now().Unix()})
+func (s *SqliteWorkStore) newWork(r RecordType) error {
+	return s.db.Create(&WorkRecord{RecordType: r, Timestamp: time.Now().Unix()}).Error
 }
 
-func (s *SqliteWorkStore) StartWork() {
-	s.newWork(Start)
+func (s *SqliteWorkStore) StartWork() error {
+	return s.newWork(Start)
 }
 
-func (s *SqliteWorkStore) StopWork() {
-	s.newWork(Stop)
+func (s *SqliteWorkStore) StopWork() error {
+	return s.newWork(Stop)
 }
 
-func (s *SqliteWorkStore) GetWork() []Work {
+func (s *SqliteWorkStore) GetWork() ([]Work, error) {
 	var workRecords []WorkRecord
-	s.db.Find(&workRecords)
+	result := s.db.Find(&workRecords)
+	if result.Error != nil {
+		return nil, result.Error
+	}
 	works := make([]Work, len(workRecords))
 	for i, v := range workRecords {
 		works[i] = v
 	}
-	return works
+	return works, nil
 }
 
 type WorkRecord struct {

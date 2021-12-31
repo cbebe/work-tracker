@@ -13,25 +13,35 @@ func printUsage() {
 	fmt.Printf("USAGE: %s start|stop\n", os.Args[0])
 }
 
+func handleCommand(cmd string, store worktracker.WorkStore) error {
+	switch strings.ToLower(cmd) {
+	case "start":
+		return store.StartWork()
+	case "stop":
+		return store.StopWork()
+	case "get":
+		works, err := store.GetWork()
+		if works != nil {
+			worktracker.PrintWork(os.Stdout, works)
+		}
+		return err
+	default:
+		printUsage()
+		return nil
+	}
+}
+
 func main() {
 	store, err := worktracker.NewSqliteWorkStore("work.db")
-
 	if err != nil {
 		log.Fatal(err)
 	}
-	args := os.Args[1:]
-	if len(args) == 0 {
-		printUsage()
-		return
-	}
-	switch strings.ToLower(args[0]) {
-	case "start":
-		store.StartWork()
-	case "stop":
-		store.StopWork()
-	case "get":
-		worktracker.PrintWork(os.Stdout, store.GetWork())
-	default:
+
+	if args := os.Args[1:]; len(args) > 0 {
+		if err := handleCommand(args[0], store); err != nil {
+			log.Fatal(err)
+		}
+	} else {
 		printUsage()
 	}
 }
