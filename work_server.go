@@ -1,7 +1,6 @@
 package worktracker
 
 import (
-	"fmt"
 	"net/http"
 )
 
@@ -32,9 +31,7 @@ func (s *WorkServer) startWorkHandler(w http.ResponseWriter, r *http.Request) {
 func (s *WorkServer) getWorkHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	for _, work := range s.store.GetWork() {
-		fmt.Fprintf(w, "%s %d\n", work.GetRecordType().String(), work.GetTimestamp())
-	}
+	PrintWork(w, s.store.GetWork())
 }
 
 func (s *WorkServer) stopWorkHandler(w http.ResponseWriter, r *http.Request) {

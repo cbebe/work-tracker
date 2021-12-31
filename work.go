@@ -1,5 +1,10 @@
 package worktracker
 
+import (
+	"fmt"
+	"io"
+)
+
 type RecordType int8
 
 const (
@@ -15,6 +20,12 @@ func (r RecordType) String() string {
 		return "stop"
 	}
 	return "n/a"
+}
+
+func PrintWork(w io.Writer, works []Work) {
+	for _, work := range works {
+		fmt.Fprintf(w, "%s %d\n", work.GetRecordType().String(), work.GetTimestamp())
+	}
 }
 
 type Work interface {

@@ -7,7 +7,7 @@ import (
 	"os"
 	"strconv"
 
-	worktracker "github.com/cbebe/worktracker"
+	"github.com/cbebe/worktracker"
 )
 
 func main() {
