@@ -10,16 +10,29 @@ import (
 )
 
 func printUsage() {
-	fmt.Printf("USAGE: %s start|stop\n", os.Args[0])
+	fmt.Printf("USAGE: %s start|stop|get [type]\n", os.Args[0])
 }
 
-func handleCommand(cmd string, store worktracker.WorkStore) error {
-	switch strings.ToLower(cmd) {
+func handleCommand(args []string, store worktracker.WorkStore) error {
+	switch strings.ToLower(args[0]) {
 	case "start":
+		if len(args) >= 2 {
+			return store.StartLog(args[1])
+		}
 		return store.StartWork()
 	case "stop":
+		if len(args) >= 2 {
+			return store.StopLog(args[1])
+		}
 		return store.StopWork()
 	case "get":
+		if len(args) >= 2 {
+			works, err := store.GetWorkType(args[1])
+			if works != nil {
+				worktracker.PrintWork(os.Stdout, works)
+			}
+			return err
+		}
 		works, err := store.GetWork()
 		if works != nil {
 			worktracker.PrintWork(os.Stdout, works)
@@ -38,7 +51,7 @@ func main() {
 	}
 
 	if args := os.Args[1:]; len(args) > 0 {
-		if err := handleCommand(args[0], store); err != nil {
+		if err := handleCommand(args, store); err != nil {
 			log.Fatal(err)
 		}
 	} else {

@@ -3,64 +3,31 @@ package worktracker
 import (
 	"fmt"
 	"time"
-
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
 )
 
 type WorkStore interface {
 	StartWork() error
+	StartLog(string) error
 	StopWork() error
+	StopLog(string) error
 	GetWork() ([]Work, error)
+	GetWorkType(string) ([]Work, error)
 }
 
-type SqliteWorkStore struct {
-	db *gorm.DB
+type ExistingLogError struct {
+	work Work
 }
 
-func NewSqliteWorkStore(path string) (*SqliteWorkStore, error) {
-	db, err := gorm.Open(sqlite.Open(path), &gorm.Config{})
-	if err != nil {
-		return nil, fmt.Errorf("failed to connect to database: %v", err)
+func exists(r RecordType) string {
+	switch r {
+	case Start:
+		return "started"
+	case Stop:
+		return "stopped"
 	}
-	db.AutoMigrate(&WorkRecord{})
-	return &SqliteWorkStore{db}, nil
+	return "n/a"
 }
 
-func (s *SqliteWorkStore) newWork(r RecordType) error {
-	return s.db.Create(&WorkRecord{RecordType: r, Timestamp: time.Now().Unix()}).Error
-}
-
-func (s *SqliteWorkStore) StartWork() error {
-	return s.newWork(Start)
-}
-
-func (s *SqliteWorkStore) StopWork() error {
-	return s.newWork(Stop)
-}
-
-func (s *SqliteWorkStore) GetWork() ([]Work, error) {
-	var workRecords []WorkRecord
-	result := s.db.Find(&workRecords)
-	if result.Error != nil {
-		return nil, result.Error
-	}
-	works := make([]Work, len(workRecords))
-	for i, v := range workRecords {
-		works[i] = v
-	}
-	return works, nil
-}
-
-type WorkRecord struct {
-	RecordType RecordType
-	Timestamp  int64
-}
-
-func (w WorkRecord) GetRecordType() RecordType {
-	return w.RecordType
-}
-
-func (w WorkRecord) GetTimestamp() int64 {
-	return w.Timestamp
+func (e *ExistingLogError) Error() string {
+	return fmt.Sprintf("log already %s: %s at %v", exists(e.work.GetRecordType()), e.work.GetType(), time.Unix(e.work.GetTimestamp(), 0))
 }

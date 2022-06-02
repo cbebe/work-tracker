@@ -24,11 +24,12 @@ func (r RecordType) String() string {
 
 func PrintWork(w io.Writer, works []Work) {
 	for _, work := range works {
-		fmt.Fprintf(w, "%s %d\n", work.GetRecordType().String(), work.GetTimestamp())
+		fmt.Fprintf(w, "%s %s %d\n", work.GetRecordType().String(), work.GetType(), work.GetTimestamp())
 	}
 }
 
 type Work interface {
 	GetRecordType() RecordType
 	GetTimestamp() int64
+	GetType() string
 }
