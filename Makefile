@@ -1,14 +1,13 @@
 PORT := 5000
 
-web: export PORT=$(PORT)
 web:
-	go run cmd/webserver/main.go
+	PORT=$(PORT) go run cmd/webserver/main.go
 
-webserver:
-	go build cmd/webserver/main.go
-
-cli:
-	go build cmd/cli/main.go
+webserver: bin/webserver
+cli: bin/cli
+bin/%: cmd/%/main.go
+	go build $<
+	mv main $@
 
 USER_ID := $(shell id -u)
 GROUP_ID := $(shell id -g)
@@ -22,4 +21,4 @@ image:
 run:
 	docker run -p $(PORT):$(PORT) -v $(PWD)/work.db:/app/work.db worktracker
 
-.PHONY: cli webserver web
+.PHONY: cli webserver web image run

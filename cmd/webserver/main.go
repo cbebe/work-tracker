@@ -22,8 +22,5 @@ func main() {
 	}
 
 	server := worktracker.NewWorkServer(store)
-	http.ListenAndServe(fmt.Sprintf(":%d", port), server)
-	if err != nil {
-		log.Fatalf("error starting http server: %v", err)
-	}
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), server))
 }
