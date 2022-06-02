@@ -7,14 +7,14 @@ import (
 )
 
 type WorkServer struct {
-	store WorkStore
+	service WorkService
 	http.Handler
 }
 
 func NewWorkServer(store WorkStore) *WorkServer {
 	s := new(WorkServer)
 
-	s.store = store
+	s.service = WorkService{store}
 
 	router := http.NewServeMux()
 	router.Handle("/all", http.HandlerFunc(s.getWorkHandler))
@@ -31,7 +31,7 @@ func handleError(w http.ResponseWriter, err error) {
 }
 
 func (s *WorkServer) startWorkHandler(w http.ResponseWriter, r *http.Request) {
-	if err := s.store.StartWork(); err != nil {
+	if err := s.service.StartWork(); err != nil {
 		handleError(w, err)
 		return
 	}
@@ -41,7 +41,7 @@ func (s *WorkServer) startWorkHandler(w http.ResponseWriter, r *http.Request) {
 
 func (s *WorkServer) getWorkHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	works, err := s.store.GetWork()
+	works, err := s.service.GetWork()
 	if err != nil {
 		handleError(w, err)
 		return
@@ -52,7 +52,7 @@ func (s *WorkServer) getWorkHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *WorkServer) stopWorkHandler(w http.ResponseWriter, r *http.Request) {
-	if err := s.store.StopWork(); err != nil {
+	if err := s.service.StopWork(); err != nil {
 		handleError(w, err)
 		return
 	}

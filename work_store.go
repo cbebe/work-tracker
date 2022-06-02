@@ -6,12 +6,10 @@ import (
 )
 
 type WorkStore interface {
-	StartWork() error
-	StartLog(string) error
-	StopWork() error
-	StopLog(string) error
+	NewWork(RecordType, string) error
 	GetWork() ([]Work, error)
 	GetWorkType(string) ([]Work, error)
+	GetLatestWork(string) (Work, error)
 }
 
 type ExistingLogError struct {
