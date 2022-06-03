@@ -70,21 +70,61 @@ func (b *BotService) messageCreate(s *discordgo.Session, m *discordgo.MessageCre
 	if args[0] != "task" || len(args) < 2 {
 		return
 	}
-
-	if args[1] == "get" {
-		var reply string
-		works, err := b.GetWork()
-		if err != nil {
-			reply = "Error getting work"
-		} else {
-			fmt.Println(works)
-			for _, work := range works {
-				reply += fmt.Sprintln(work)
-			}
-		}
-		s.ChannelMessageSend(m.ChannelID, reply)
+	switch args[1] {
+	case "get":
+		b.getTasks(s, m, args)
+	case "start":
+		b.startTask(s, m, args)
+	case "stop":
+		b.stopTask(s, m, args)
 	}
 
+}
+
+func getType(args []string) string {
+	if len(args) < 3 {
+		return "work"
+	} else {
+		return args[2]
+	}
+}
+
+func sendAck(s *discordgo.Session, m *discordgo.MessageCreate, e error, t string, action string) {
+	if e != nil {
+		s.ChannelMessageSend(m.ChannelID, e.Error())
+	} else {
+		s.ChannelMessageSend(m.ChannelID, fmt.Sprint(action, t))
+	}
+}
+
+func (b *BotService) stopTask(s *discordgo.Session, m *discordgo.MessageCreate, args []string) {
+	t := getType(args)
+	sendAck(s, m, b.StopLog(t), t, "Stopped ")
+}
+
+func (b *BotService) startTask(s *discordgo.Session, m *discordgo.MessageCreate, args []string) {
+	t := getType(args)
+	sendAck(s, m, b.StartLog(t), t, "Started ")
+}
+
+func (b *BotService) getTasks(s *discordgo.Session, m *discordgo.MessageCreate, args []string) {
+	var reply string
+	var works []work.Work
+	var err error
+	if len(args) < 3 {
+		works, err = b.GetWork()
+	} else {
+		works, err = b.GetWorkType(args[2])
+	}
+	if err != nil {
+		reply = "Error getting work"
+	} else {
+		fmt.Println(works)
+		for _, work := range works {
+			reply += fmt.Sprintln(work)
+		}
+	}
+	s.ChannelMessageSend(m.ChannelID, reply)
 }
 
 func getArgs(s string) []string {
