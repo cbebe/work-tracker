@@ -5,6 +5,7 @@ web:
 
 webserver: bin/webserver
 cli: bin/cli
+bot: bin/bot
 bin/%: cmd/%/main.go
 	go build $<
 	mv main $@
