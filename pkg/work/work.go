@@ -40,6 +40,6 @@ func (r RecordType) String() string {
 
 func PrintWork(w io.Writer, works []Work) {
 	for _, work := range works {
-		fmt.Fprintf(w, "%s %s %s\n", work.RecordType.String(), work.Type, work.Timestamp)
+		fmt.Fprintln(w, work.RecordType.String(), work.Type, work.Timestamp)
 	}
 }

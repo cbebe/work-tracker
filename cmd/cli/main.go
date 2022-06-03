@@ -10,7 +10,7 @@ import (
 )
 
 func printUsage() {
-	fmt.Printf("USAGE: %s start|stop|get [type]\n", os.Args[0])
+	fmt.Println("USAGE:", os.Args[0], "start|stop|get [type]")
 }
 
 func handleCommand(args []string, service work.WorkService) error {
