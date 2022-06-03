@@ -49,7 +49,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	service := work.WorkService{WorkStore: store}
+	service := work.WorkService{SqliteWorkStore: store}
 
 	if args := os.Args[1:]; len(args) > 0 {
 		if err := handleCommand(args, service); err != nil {

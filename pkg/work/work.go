@@ -3,7 +3,23 @@ package work
 import (
 	"fmt"
 	"io"
+	"time"
+
+	"gorm.io/gorm"
 )
+
+type Work struct {
+	gorm.Model
+	Timestamp  Timestamp
+	RecordType RecordType
+	Type       string `gorm:"default:'work'"`
+}
+
+type Timestamp int64
+
+func (t Timestamp) String() string {
+	return time.Unix(int64(t), 0).Format(time.UnixDate)
+}
 
 type RecordType int8
 
@@ -24,12 +40,6 @@ func (r RecordType) String() string {
 
 func PrintWork(w io.Writer, works []Work) {
 	for _, work := range works {
-		fmt.Fprintf(w, "%s %s %d\n", work.GetRecordType().String(), work.GetType(), work.GetTimestamp())
+		fmt.Fprintf(w, "%s %s %s\n", work.RecordType.String(), work.Type, work.Timestamp)
 	}
-}
-
-type Work interface {
-	GetRecordType() RecordType
-	GetTimestamp() int64
-	GetType() string
 }

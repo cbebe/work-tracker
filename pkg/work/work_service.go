@@ -1,7 +1,7 @@
 package work
 
 type WorkService struct {
-	WorkStore
+	*SqliteWorkStore
 }
 
 func (w *WorkService) StartWork() error {
@@ -14,7 +14,7 @@ func (w *WorkService) StopWork() error {
 
 func (w *WorkService) StartLog(t string) error {
 	work, err := w.GetLatestWork(t)
-	if err == nil && work.GetRecordType() == Start {
+	if err == nil && work.RecordType == Start {
 		return &ExistingLogError{work}
 	}
 	return w.NewWork(Start, t)
@@ -25,7 +25,7 @@ func (w *WorkService) StopLog(t string) error {
 	if err != nil {
 		return err
 	}
-	if work.GetRecordType() != Start {
+	if work.RecordType != Start {
 		return &ExistingLogError{work}
 	}
 	return w.NewWork(Stop, t)
