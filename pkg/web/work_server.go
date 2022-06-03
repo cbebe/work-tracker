@@ -1,20 +1,22 @@
-package work
+package web
 
 import (
 	"fmt"
 	"net/http"
 	"os"
+
+	"github.com/cbebe/worktracker/pkg/work"
 )
 
 type WorkServer struct {
-	service WorkService
+	service work.WorkService
 	http.Handler
 }
 
-func NewWorkServer(store WorkStore) *WorkServer {
+func NewWorkServer(store work.WorkStore) *WorkServer {
 	s := new(WorkServer)
 
-	s.service = WorkService{WorkStore: store}
+	s.service = work.WorkService{WorkStore: store}
 
 	router := http.NewServeMux()
 	router.Handle("/all", http.HandlerFunc(s.getWorkHandler))
@@ -48,7 +50,7 @@ func (s *WorkServer) getWorkHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	PrintWork(w, works)
+	work.PrintWork(w, works)
 }
 
 func (s *WorkServer) stopWorkHandler(w http.ResponseWriter, r *http.Request) {

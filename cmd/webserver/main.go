@@ -1,13 +1,11 @@
 package main
 
 import (
-	"fmt"
 	"log"
-	"net/http"
 	"os"
 	"strconv"
 
-	"github.com/cbebe/worktracker/pkg/work"
+	"github.com/cbebe/worktracker/pkg/web"
 )
 
 func main() {
@@ -15,12 +13,5 @@ func main() {
 	if err != nil {
 		log.Fatalf("port not set: %v", err)
 	}
-	store, err := work.NewSqliteWorkStore("work.db")
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	server := work.NewWorkServer(store)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), server))
+	web.RunServer(port, "work.db")
 }
