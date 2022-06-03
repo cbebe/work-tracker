@@ -6,14 +6,14 @@ import (
 	"os"
 	"strings"
 
-	"github.com/cbebe/worktracker"
+	"github.com/cbebe/worktracker/pkg/work"
 )
 
 func printUsage() {
 	fmt.Printf("USAGE: %s start|stop|get [type]\n", os.Args[0])
 }
 
-func handleCommand(args []string, service worktracker.WorkService) error {
+func handleCommand(args []string, service work.WorkService) error {
 	switch strings.ToLower(args[0]) {
 	case "start":
 		if len(args) >= 2 {
@@ -29,13 +29,13 @@ func handleCommand(args []string, service worktracker.WorkService) error {
 		if len(args) >= 2 {
 			works, err := service.GetWorkType(args[1])
 			if works != nil {
-				worktracker.PrintWork(os.Stdout, works)
+				work.PrintWork(os.Stdout, works)
 			}
 			return err
 		}
 		works, err := service.GetWork()
 		if works != nil {
-			worktracker.PrintWork(os.Stdout, works)
+			work.PrintWork(os.Stdout, works)
 		}
 		return err
 	default:
@@ -45,11 +45,11 @@ func handleCommand(args []string, service worktracker.WorkService) error {
 }
 
 func main() {
-	store, err := worktracker.NewSqliteWorkStore("work.db")
+	store, err := work.NewSqliteWorkStore("work.db")
 	if err != nil {
 		log.Fatal(err)
 	}
-	service := worktracker.WorkService{WorkStore: store}
+	service := work.WorkService{WorkStore: store}
 
 	if args := os.Args[1:]; len(args) > 0 {
 		if err := handleCommand(args, service); err != nil {

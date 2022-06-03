@@ -1,4 +1,4 @@
-package worktracker
+package work
 
 import (
 	"fmt"
@@ -14,7 +14,7 @@ type WorkServer struct {
 func NewWorkServer(store WorkStore) *WorkServer {
 	s := new(WorkServer)
 
-	s.service = WorkService{store}
+	s.service = WorkService{WorkStore: store}
 
 	router := http.NewServeMux()
 	router.Handle("/all", http.HandlerFunc(s.getWorkHandler))

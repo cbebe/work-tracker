@@ -1,4 +1,4 @@
-package worktracker
+package work
 
 import (
 	"fmt"
