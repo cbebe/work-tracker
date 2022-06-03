@@ -29,13 +29,13 @@ func handleCommand(args []string, service work.WorkService) error {
 		if len(args) >= 2 {
 			works, err := service.GetWorkType(args[1])
 			if works != nil {
-				work.PrintWork(os.Stdout, works)
+				work.PrintWorks(os.Stdout, works)
 			}
 			return err
 		}
 		works, err := service.GetWork()
 		if works != nil {
-			work.PrintWork(os.Stdout, works)
+			work.PrintWorks(os.Stdout, works)
 		}
 		return err
 	default:

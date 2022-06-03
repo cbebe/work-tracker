@@ -73,7 +73,7 @@ func (s *WorkController) getWorkHandler(w http.ResponseWriter, r *http.Request) 
 	}
 
 	w.WriteHeader(http.StatusOK)
-	work.PrintWork(w, works)
+	work.PrintWorks(w, works)
 }
 
 func (s *WorkController) stopWorkHandler(w http.ResponseWriter, r *http.Request) {

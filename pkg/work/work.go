@@ -38,8 +38,12 @@ func (r RecordType) String() string {
 	return "n/a"
 }
 
-func PrintWork(w io.Writer, works []Work) {
+func (w Work) String() string {
+	return fmt.Sprintf("%s %s %s", w.RecordType, w.Type, w.Timestamp)
+}
+
+func PrintWorks(w io.Writer, works []Work) {
 	for _, work := range works {
-		fmt.Fprintln(w, work.RecordType.String(), work.Type, work.Timestamp)
+		fmt.Fprintln(w, work)
 	}
 }

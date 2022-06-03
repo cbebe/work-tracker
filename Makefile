@@ -2,6 +2,8 @@ PORT := 5000
 
 web:
 	PORT=$(PORT) go run cmd/webserver/main.go
+runbot:
+	go run cmd/bot/main.go
 
 webserver: bin/webserver
 cli: bin/cli
