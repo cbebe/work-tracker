@@ -45,11 +45,10 @@ func handleCommand(args []string, service work.WorkService) error {
 }
 
 func main() {
-	store, err := work.NewSqliteWorkStore("work.db")
+	service, err := work.NewWorkService("work.db")
 	if err != nil {
 		log.Fatal(err)
 	}
-	service := work.WorkService{SqliteWorkStore: store}
 
 	if args := os.Args[1:]; len(args) > 0 {
 		if err := handleCommand(args, service); err != nil {

@@ -1,7 +1,18 @@
 package work
 
+import "log"
+
 type WorkService struct {
 	*SqliteWorkStore
+}
+
+func NewWorkService(path string) (WorkService, error) {
+	store, err := NewSqliteWorkStore(path)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	return WorkService{SqliteWorkStore: store}, nil
 }
 
 func (w *WorkService) StartWork() error {

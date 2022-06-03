@@ -9,16 +9,16 @@ import (
 	"github.com/cbebe/worktracker/pkg/work"
 )
 
-type WorkServer struct {
+type WorkController struct {
 	service work.WorkService
 	layout  *template.Template
 	http.Handler
 }
 
-func NewWorkServer(store *work.SqliteWorkStore) *WorkServer {
-	s := new(WorkServer)
+func NewWorkController(service work.WorkService) *WorkController {
+	s := new(WorkController)
 
-	s.service = work.WorkService{SqliteWorkStore: store}
+	s.service = service
 	s.layout = template.Must(template.ParseFiles("layout.html"))
 
 	router := http.NewServeMux()
@@ -36,7 +36,7 @@ func handleError(w http.ResponseWriter, err error) {
 	w.WriteHeader(http.StatusInternalServerError)
 }
 
-func (s *WorkServer) startWorkHandler(w http.ResponseWriter, r *http.Request) {
+func (s *WorkController) startWorkHandler(w http.ResponseWriter, r *http.Request) {
 	if err := s.service.StartWork(); err != nil {
 		handleError(w, err)
 		return
@@ -50,7 +50,7 @@ type WorkPageData struct {
 	Works     []work.Work
 }
 
-func (s *WorkServer) sendAllWorkHandler(w http.ResponseWriter, r *http.Request) {
+func (s *WorkController) sendAllWorkHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 	works, err := s.service.GetWork()
 	if err != nil {
@@ -64,7 +64,7 @@ func (s *WorkServer) sendAllWorkHandler(w http.ResponseWriter, r *http.Request) 
 	s.layout.Execute(w, data)
 }
 
-func (s *WorkServer) getWorkHandler(w http.ResponseWriter, r *http.Request) {
+func (s *WorkController) getWorkHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	works, err := s.service.GetWork()
 	if err != nil {
@@ -76,7 +76,7 @@ func (s *WorkServer) getWorkHandler(w http.ResponseWriter, r *http.Request) {
 	work.PrintWork(w, works)
 }
 
-func (s *WorkServer) stopWorkHandler(w http.ResponseWriter, r *http.Request) {
+func (s *WorkController) stopWorkHandler(w http.ResponseWriter, r *http.Request) {
 	if err := s.service.StopWork(); err != nil {
 		handleError(w, err)
 		return

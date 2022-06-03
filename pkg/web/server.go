@@ -9,12 +9,12 @@ import (
 )
 
 func RunServer(port int, path string) {
-	store, err := work.NewSqliteWorkStore(path)
+	service, err := work.NewWorkService(path)
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	server := NewWorkServer(store)
+	server := NewWorkController(service)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), server))
 }
