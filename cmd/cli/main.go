@@ -14,26 +14,27 @@ func printUsage() {
 }
 
 func handleCommand(args []string, service work.WorkService) error {
+	id := "cli"
 	switch strings.ToLower(args[0]) {
 	case "start":
 		if len(args) >= 2 {
-			return service.StartLog(args[1])
+			return service.StartLog(args[1], id)
 		}
 		return service.StartWork()
 	case "stop":
 		if len(args) >= 2 {
-			return service.StopLog(args[1])
+			return service.StopLog(args[1], id)
 		}
 		return service.StopWork()
 	case "get":
 		if len(args) >= 2 {
-			works, err := service.GetWorkType(args[1])
+			works, err := service.GetWorkType(args[1], id)
 			if works != nil {
 				work.PrintWorks(os.Stdout, works)
 			}
 			return err
 		}
-		works, err := service.GetWork()
+		works, err := service.GetWork(id)
 		if works != nil {
 			work.PrintWorks(os.Stdout, works)
 		}

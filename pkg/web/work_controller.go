@@ -36,7 +36,7 @@ func handleError(w http.ResponseWriter, err error) {
 	w.WriteHeader(http.StatusInternalServerError)
 }
 
-func (s *WorkController) startWorkHandler(w http.ResponseWriter, r *http.Request) {
+func (s WorkController) startWorkHandler(w http.ResponseWriter, r *http.Request) {
 	if err := s.service.StartWork(); err != nil {
 		handleError(w, err)
 		return
@@ -50,9 +50,9 @@ type WorkPageData struct {
 	Works     []work.Work
 }
 
-func (s *WorkController) sendAllWorkHandler(w http.ResponseWriter, r *http.Request) {
+func (s WorkController) sendAllWorkHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
-	works, err := s.service.GetWork()
+	works, err := s.service.GetWork("cli")
 	if err != nil {
 		handleError(w, err)
 		return
@@ -64,9 +64,9 @@ func (s *WorkController) sendAllWorkHandler(w http.ResponseWriter, r *http.Reque
 	s.layout.Execute(w, data)
 }
 
-func (s *WorkController) getWorkHandler(w http.ResponseWriter, r *http.Request) {
+func (s WorkController) getWorkHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	works, err := s.service.GetWork()
+	works, err := s.service.GetWork("cli")
 	if err != nil {
 		handleError(w, err)
 		return
@@ -76,7 +76,7 @@ func (s *WorkController) getWorkHandler(w http.ResponseWriter, r *http.Request) 
 	work.PrintWorks(w, works)
 }
 
-func (s *WorkController) stopWorkHandler(w http.ResponseWriter, r *http.Request) {
+func (s WorkController) stopWorkHandler(w http.ResponseWriter, r *http.Request) {
 	if err := s.service.StopWork(); err != nil {
 		handleError(w, err)
 		return

@@ -13,6 +13,7 @@ type Work struct {
 	Timestamp  Timestamp
 	RecordType RecordType
 	Type       string `gorm:"default:'work'"`
+	UserID     string `gorm:"default:'cli'"`
 }
 
 type Timestamp int64

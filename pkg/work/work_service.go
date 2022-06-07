@@ -15,29 +15,29 @@ func NewWorkService(path string) (WorkService, error) {
 	return WorkService{SqliteWorkStore: store}, nil
 }
 
-func (w *WorkService) StartWork() error {
-	return w.StartLog("work")
+func (w WorkService) StartWork() error {
+	return w.StartLog("work", "cli")
 }
 
-func (w *WorkService) StopWork() error {
-	return w.StopLog("work")
+func (w WorkService) StopWork() error {
+	return w.StopLog("work", "cli")
 }
 
-func (w *WorkService) StartLog(t string) error {
-	work, err := w.GetLatestWork(t)
+func (w WorkService) StartLog(t, u string) error {
+	work, err := w.GetLatestWork(t, u)
 	if err == nil && work.RecordType == Start {
 		return &ExistingLogError{work}
 	}
-	return w.NewWork(Start, t)
+	return w.NewWork(Start, t, u)
 }
 
-func (w *WorkService) StopLog(t string) error {
-	work, err := w.GetLatestWork(t)
+func (w WorkService) StopLog(t, u string) error {
+	work, err := w.GetLatestWork(t, u)
 	if err != nil {
 		return err
 	}
 	if work.RecordType != Start {
 		return &ExistingLogError{work}
 	}
-	return w.NewWork(Stop, t)
+	return w.NewWork(Stop, t, u)
 }

@@ -17,6 +17,36 @@ const tokenVar = "DISCORD_TOKEN"
 
 type BotService struct {
 	*work.WorkService
+	userID string
+}
+
+func newBotService() BotService {
+	service, err := work.NewWorkService("work.db")
+	id := os.Getenv("USER_ID")
+
+	if err != nil {
+		log.Fatalln("Error connecting to database")
+	}
+
+	return BotService{&service, id}
+}
+
+func newDiscordGo(setup func(*discordgo.Session)) (*discordgo.Session, error) {
+	token := os.Getenv(tokenVar)
+	dg, err := discordgo.New("Bot " + token)
+
+	if err != nil {
+		return nil, fmt.Errorf("error creating Discord session, %v", err)
+	}
+	setup(dg)
+	dg.Identify.Intents = discordgo.IntentsGuildMessages
+
+	err = dg.Open()
+	if err != nil {
+		return nil, fmt.Errorf("error opening connection, %v", err)
+	}
+
+	return dg, nil
 }
 
 func main() {
@@ -24,31 +54,15 @@ func main() {
 	if err != nil {
 		log.Fatalln("Error loading .env file")
 	}
-	service, err := work.NewWorkService("work.db")
+	bot := newBotService()
+	dg, err := newDiscordGo(func(d *discordgo.Session) {
+		d.AddHandler(bot.messageCreate)
+	})
 
 	if err != nil {
-		log.Fatalln("Error connecting to database")
+		log.Fatalln(err)
 	}
 
-	bot := BotService{&service}
-
-	token := os.Getenv(tokenVar)
-	dg, err := discordgo.New("Bot " + token)
-
-	if err != nil {
-		fmt.Println("error creating Discord session, ", err)
-		return
-	}
-
-	dg.AddHandler(bot.messageCreate)
-
-	dg.Identify.Intents = discordgo.IntentsGuildMessages
-
-	err = dg.Open()
-	if err != nil {
-		fmt.Println("error opening connection, ", err)
-		return
-	}
 	// Wait here until CTRL-C or other term signal is received.
 	fmt.Println("Bot is now running.  Press CTRL-C to exit.")
 	sc := make(chan os.Signal, 1)
@@ -59,13 +73,11 @@ func main() {
 	dg.Close()
 }
 
-func (b *BotService) messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
-
-	// Ignore all messages created by the bot itself
-	// This isn't required in this specific example but it's a good practice.
-	if m.Author.ID == s.State.User.ID {
+func (b BotService) messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
+	if m.Author.ID == s.State.User.ID || m.Author.Bot {
 		return
 	}
+
 	args := getArgs(m.Content)
 	if args[0] != "task" || len(args) < 2 {
 		return
@@ -97,29 +109,35 @@ func sendAck(s *discordgo.Session, m *discordgo.MessageCreate, e error, t string
 	}
 }
 
-func (b *BotService) stopTask(s *discordgo.Session, m *discordgo.MessageCreate, args []string) {
-	t := getType(args)
-	sendAck(s, m, b.StopLog(t), t, "Stopped ")
+func (b BotService) id(m *discordgo.MessageCreate) string {
+	if m.Author.ID == b.userID {
+		return "cli"
+	}
+	return m.Author.ID
 }
 
-func (b *BotService) startTask(s *discordgo.Session, m *discordgo.MessageCreate, args []string) {
+func (b BotService) stopTask(s *discordgo.Session, m *discordgo.MessageCreate, args []string) {
 	t := getType(args)
-	sendAck(s, m, b.StartLog(t), t, "Started ")
+	sendAck(s, m, b.StopLog(t, b.id(m)), t, "Stopped ")
 }
 
-func (b *BotService) getTasks(s *discordgo.Session, m *discordgo.MessageCreate, args []string) {
+func (b BotService) startTask(s *discordgo.Session, m *discordgo.MessageCreate, args []string) {
+	t := getType(args)
+	sendAck(s, m, b.StartLog(t, b.id(m)), t, "Started ")
+}
+
+func (b BotService) getTasks(s *discordgo.Session, m *discordgo.MessageCreate, args []string) {
 	var reply string
 	var works []work.Work
 	var err error
 	if len(args) < 3 {
-		works, err = b.GetWork()
+		works, err = b.GetWork(b.id(m))
 	} else {
-		works, err = b.GetWorkType(args[2])
+		works, err = b.GetWorkType(args[2], b.id(m))
 	}
 	if err != nil {
 		reply = "Error getting work"
 	} else {
-		fmt.Println(works)
 		for _, work := range works {
 			reply += fmt.Sprintln(work)
 		}
