@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/cbebe/worktracker/pkg/work"
+	"github.com/cbebe/work-tracker/pkg/work"
 )
 
 func printUsage() {

@@ -9,8 +9,7 @@ import (
 	"syscall"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/cbebe/worktracker/pkg/work"
-	"github.com/joho/godotenv"
+	"github.com/cbebe/work-tracker/pkg/work"
 )
 
 const tokenVar = "DISCORD_TOKEN"
@@ -49,10 +48,6 @@ func newDiscordGo(setup func(*discordgo.Session)) (*discordgo.Session, error) {
 }
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatalln("Error loading .env file")
-	}
 	bot := newBotService()
 	dg, err := newDiscordGo(func(d *discordgo.Session) {
 		d.AddHandler(bot.messageCreate)

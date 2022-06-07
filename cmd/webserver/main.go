@@ -5,7 +5,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/cbebe/worktracker/pkg/web"
+	"github.com/cbebe/work-tracker/pkg/web"
 )
 
 func main() {

@@ -6,7 +6,7 @@ import (
 	"os"
 	"text/template"
 
-	"github.com/cbebe/worktracker/pkg/work"
+	"github.com/cbebe/work-tracker/pkg/work"
 )
 
 type WorkController struct {
