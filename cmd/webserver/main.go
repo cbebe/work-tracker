@@ -10,8 +10,9 @@ import (
 
 func main() {
 	port, err := strconv.Atoi(os.Getenv("PORT"))
+	path := os.Getenv(("DB_PATH"))
 	if err != nil {
 		log.Fatalf("port not set: %v", err)
 	}
-	web.RunServer(port, "work.db")
+	web.RunServer(port, path)
 }

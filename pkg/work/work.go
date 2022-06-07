@@ -9,8 +9,9 @@ import (
 )
 
 const (
-	ID          = "cli"
-	DefaultType = "work"
+	ID            = "cli"
+	DefaultType   = "work"
+	DefaultDBPath = "db/work.sqlite"
 )
 
 type Work struct {

@@ -45,7 +45,8 @@ func handleCommand(args []string, service *work.WorkService) error {
 }
 
 func main() {
-	service, err := work.NewWorkService("work.db")
+	path := os.Getenv("DB_PATH")
+	service, err := work.NewWorkService(path)
 	if err != nil {
 		log.Fatal(err)
 	}

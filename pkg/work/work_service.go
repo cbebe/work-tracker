@@ -7,6 +7,10 @@ type WorkService struct {
 }
 
 func NewWorkService(path string) (*WorkService, error) {
+	if path == "" {
+		fmt.Println("Using default db path:", DefaultDBPath)
+		path = DefaultDBPath
+	}
 	store, err := NewSqliteWorkStore(path)
 
 	if err != nil {

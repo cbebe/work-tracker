@@ -20,7 +20,8 @@ type BotService struct {
 }
 
 func newBotService() BotService {
-	service, err := work.NewWorkService("work.db")
+	path := os.Getenv("DB_PATH")
+	service, err := work.NewWorkService(path)
 	if err != nil {
 		log.Fatalln("Error connecting to database")
 	}
