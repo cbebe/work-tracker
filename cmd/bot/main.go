@@ -22,13 +22,12 @@ type BotService struct {
 
 func newBotService() BotService {
 	service, err := work.NewWorkService("work.db")
-	id := os.Getenv("USER_ID")
-
 	if err != nil {
 		log.Fatalln("Error connecting to database")
 	}
 
-	return BotService{&service, id}
+	id := os.Getenv("USER_ID")
+	return BotService{service, id}
 }
 
 func newDiscordGo(setup func(*discordgo.Session)) (*discordgo.Session, error) {
@@ -95,7 +94,7 @@ func (b BotService) messageCreate(s *discordgo.Session, m *discordgo.MessageCrea
 
 func getType(args []string) string {
 	if len(args) < 3 {
-		return "work"
+		return work.DefaultType
 	} else {
 		return args[2]
 	}

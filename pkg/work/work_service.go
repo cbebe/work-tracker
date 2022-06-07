@@ -1,26 +1,26 @@
 package work
 
-import "log"
+import "fmt"
 
 type WorkService struct {
 	*SqliteWorkStore
 }
 
-func NewWorkService(path string) (WorkService, error) {
+func NewWorkService(path string) (*WorkService, error) {
 	store, err := NewSqliteWorkStore(path)
 
 	if err != nil {
-		log.Fatal(err)
+		return nil, fmt.Errorf("Error creating work service: %v", err)
 	}
-	return WorkService{SqliteWorkStore: store}, nil
+	return &WorkService{SqliteWorkStore: store}, nil
 }
 
 func (w WorkService) StartWork() error {
-	return w.StartLog("work", "cli")
+	return w.StartLog(DefaultType, ID)
 }
 
 func (w WorkService) StopWork() error {
-	return w.StopLog("work", "cli")
+	return w.StopLog(DefaultType, ID)
 }
 
 func (w WorkService) StartLog(t, u string) error {

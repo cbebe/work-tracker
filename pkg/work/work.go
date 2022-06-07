@@ -8,6 +8,11 @@ import (
 	"gorm.io/gorm"
 )
 
+const (
+	ID          = "cli"
+	DefaultType = "work"
+)
+
 type Work struct {
 	gorm.Model
 	Timestamp  Timestamp
