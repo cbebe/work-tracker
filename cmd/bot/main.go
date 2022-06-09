@@ -7,6 +7,7 @@ import (
 	"os/signal"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/cbebe/work-tracker/pkg/work"
@@ -68,7 +69,7 @@ func main() {
 	dg.Close()
 }
 
-func (b BotService) messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
+func (b *BotService) messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.Author.ID == s.State.User.ID || m.Author.Bot {
 		return
 	}
@@ -104,40 +105,102 @@ func sendAck(s *discordgo.Session, m *discordgo.MessageCreate, e error, t string
 	}
 }
 
-func (b BotService) id(m *discordgo.MessageCreate) string {
+func (b *BotService) id(m *discordgo.MessageCreate) string {
 	if m.Author.ID == b.userID {
 		return "cli"
 	}
 	return m.Author.ID
 }
 
-func (b BotService) stopTask(s *discordgo.Session, m *discordgo.MessageCreate, args []string) {
+func (b *BotService) stopTask(s *discordgo.Session, m *discordgo.MessageCreate, args []string) {
 	t := getType(args)
 	sendAck(s, m, b.StopLog(t, b.id(m)), t, "Stopped ")
 }
 
-func (b BotService) startTask(s *discordgo.Session, m *discordgo.MessageCreate, args []string) {
+func (b *BotService) startTask(s *discordgo.Session, m *discordgo.MessageCreate, args []string) {
 	t := getType(args)
 	sendAck(s, m, b.StartLog(t, b.id(m)), t, "Started ")
 }
 
-func (b BotService) getTasks(s *discordgo.Session, m *discordgo.MessageCreate, args []string) {
+func (b *BotService) sortLogs(works []work.Work) ([]work.Line, []work.Work) {
+	logs := make(map[string][]work.Work)
+	unfinished := make([]work.Work, 0)
+	lines := make([]work.Line, 0)
+	for _, w := range works {
+		logs[w.Type] = append(logs[w.Type], w)
+	}
+
+	for k, v := range logs {
+		for i := 0; i < len(v); i += 2 {
+			if (i + 1) >= len(v) {
+				unfinished = append(unfinished, v[i])
+				continue
+			}
+			s := time.Unix(int64(v[i].Timestamp), 0)
+			e := time.Unix(int64(v[i+1].Timestamp), 0)
+
+			lines = append(lines, work.Line{
+				Start:   s,
+				Message: fmt.Sprintf("**%s:** %s to %s - %s", k, format(&s), format(&e), e.Sub(s)),
+			})
+		}
+	}
+
+	work.By(work.StartDate).Sort(lines)
+	return lines, unfinished
+}
+
+func format(t *time.Time) string {
+	f := "3:04:05 PM"
+	if t.Day() != time.Now().Day() {
+		f = "Mon 3:04:05 PM"
+	}
+	return t.Format(f)
+}
+
+func (b *BotService) getTasks(s *discordgo.Session, m *discordgo.MessageCreate, args []string) {
 	var reply string
 	var works []work.Work
 	var err error
+
 	if len(args) < 3 {
 		works, err = b.GetWork(b.id(m))
 	} else {
 		works, err = b.GetWorkType(args[2], b.id(m))
 	}
+
+	var lines []work.Line
+	unfinished := make([]work.Work, 0)
 	if err != nil {
 		reply = "Error getting work"
 	} else {
-		for _, work := range works {
-			reply += fmt.Sprintln(work)
+		lines, unfinished = b.sortLogs(works)
+		for i, l := range lines {
+			reply += fmt.Sprintf("%d. %s\n", i+1, l.Message)
 		}
 	}
-	s.ChannelMessageSend(m.ChannelID, reply)
+	if reply == "" && len(unfinished) == 0 {
+		reply = "No logs found"
+	}
+
+	embed := discordgo.MessageEmbed{
+		Title:       fmt.Sprintf("%s's Logs", m.Author.Username),
+		Description: reply,
+	}
+
+	if len(unfinished) > 0 {
+		v := ""
+		for i, w := range unfinished {
+			t := time.Unix(int64(w.Timestamp), 0)
+			v += fmt.Sprintf("%d. **%s**: Started %s\n", i+1, w.Type, format(&t))
+		}
+		embed.Fields = append(embed.Fields, &discordgo.MessageEmbedField{
+			Name:  "Unfinished Logs",
+			Value: v,
+		})
+	}
+
+	s.ChannelMessageSendEmbed(m.ChannelID, &embed)
 }
 
 func getArgs(s string) []string {
