@@ -3,7 +3,7 @@ package worktracker
 import "fmt"
 
 type WorkService struct {
-	*SqliteWorkStore
+	Store
 }
 
 func NewWorkService(path string) (*WorkService, error) {
@@ -16,7 +16,7 @@ func NewWorkService(path string) (*WorkService, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error creating work service: %v", err)
 	}
-	return &WorkService{SqliteWorkStore: store}, nil
+	return &WorkService{store}, nil
 }
 
 func (w *WorkService) StartWork() error {

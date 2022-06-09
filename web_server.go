@@ -2,19 +2,30 @@ package worktracker
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"text/template"
 )
 
-type WorkController struct {
+func RunServer(port int, path string) {
+	s, err := NewWorkService(path)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	server := newWorkHandler(s)
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), server))
+}
+
+type workHandler struct {
 	service *WorkService
 	layout  *template.Template
 	http.Handler
 }
 
-func NewWorkController(service *WorkService) WorkController {
-	s := WorkController{
+func newWorkHandler(service *WorkService) workHandler {
+	s := workHandler{
 		service: service,
 		layout:  template.Must(template.ParseFiles("layout.html")),
 	}
@@ -34,7 +45,7 @@ func handleError(w http.ResponseWriter, err error) {
 	w.WriteHeader(http.StatusInternalServerError)
 }
 
-func (s WorkController) startWorkHandler(w http.ResponseWriter, r *http.Request) {
+func (s *workHandler) startWorkHandler(w http.ResponseWriter, r *http.Request) {
 	if err := s.service.StartWork(); err != nil {
 		handleError(w, err)
 		return
@@ -43,26 +54,26 @@ func (s WorkController) startWorkHandler(w http.ResponseWriter, r *http.Request)
 	w.WriteHeader(http.StatusOK)
 }
 
-type WorkPageData struct {
+type workPageData struct {
 	PageTitle string
 	Works     []Work
 }
 
-func (s WorkController) sendAllWorkHandler(w http.ResponseWriter, r *http.Request) {
+func (s *workHandler) sendAllWorkHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 	works, err := s.service.GetWork(ID)
 	if err != nil {
 		handleError(w, err)
 		return
 	}
-	data := WorkPageData{
+	data := workPageData{
 		PageTitle: "All Work",
 		Works:     works,
 	}
 	s.layout.Execute(w, data)
 }
 
-func (s WorkController) getWorkHandler(w http.ResponseWriter, r *http.Request) {
+func (s *workHandler) getWorkHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	works, err := s.service.GetWork(ID)
 	if err != nil {
@@ -74,7 +85,7 @@ func (s WorkController) getWorkHandler(w http.ResponseWriter, r *http.Request) {
 	PrintWorks(w, works)
 }
 
-func (s WorkController) stopWorkHandler(w http.ResponseWriter, r *http.Request) {
+func (s workHandler) stopWorkHandler(w http.ResponseWriter, r *http.Request) {
 	if err := s.service.StopWork(); err != nil {
 		handleError(w, err)
 		return
