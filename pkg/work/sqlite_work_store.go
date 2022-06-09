@@ -21,7 +21,7 @@ func NewSqliteWorkStore(path string) (*SqliteWorkStore, error) {
 	return &SqliteWorkStore{db}, nil
 }
 
-func (s SqliteWorkStore) NewWork(r RecordType, t, u string) error {
+func (s *SqliteWorkStore) NewWork(r RecordType, t, u string) error {
 	return s.db.Create(&Work{
 		RecordType: r,
 		Timestamp:  Timestamp(time.Now().Unix()),
@@ -30,7 +30,7 @@ func (s SqliteWorkStore) NewWork(r RecordType, t, u string) error {
 	}).Error
 }
 
-func (s SqliteWorkStore) GetLatestWork(t, u string) (Work, error) {
+func (s *SqliteWorkStore) GetLatestWork(t, u string) (Work, error) {
 	var work Work
 	result := s.db.Where(&Work{Type: t, UserID: u}).Order("id desc").Limit(1).Find(&work)
 	if work.ID == 0 {
@@ -39,7 +39,7 @@ func (s SqliteWorkStore) GetLatestWork(t, u string) (Work, error) {
 	return work, result.Error
 }
 
-func (s SqliteWorkStore) GetWorkType(t, u string) ([]Work, error) {
+func (s *SqliteWorkStore) GetWorkType(t, u string) ([]Work, error) {
 	var works []Work
 	result := s.db.Where(&Work{Type: t, UserID: u}).Find(&works)
 	if result.Error != nil {
@@ -48,7 +48,7 @@ func (s SqliteWorkStore) GetWorkType(t, u string) ([]Work, error) {
 	return works, nil
 }
 
-func (s SqliteWorkStore) GetWork(u string) ([]Work, error) {
+func (s *SqliteWorkStore) GetWork(u string) ([]Work, error) {
 	var works []Work
 	result := s.db.Where(&Work{UserID: u}).Find(&works)
 	if result.Error != nil {
