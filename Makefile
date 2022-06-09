@@ -19,13 +19,13 @@ image:
 		--build-arg USER_ID=$(USER_ID) \
 		--build-arg GROUP_ID=$(GROUP_ID) \
 		--build-arg PORT=$(PORT) \
-		-t work-tracker .
+		-t worktracker .
 	
 watch: bin/bot
 	find cmd/ pkg/ .env | entr sh -c '. ./.env && make runbot'
 
 	
 run:
-	docker run -p $(PORT):$(PORT) -v $(PWD)/work.db:/app/work.db work-tracker
+	docker run -p $(PORT):$(PORT) -v $(PWD)/work.db:/app/work.db worktracker
 
 .PHONY: cli webserver web image run

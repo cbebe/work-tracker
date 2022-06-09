@@ -1,16 +1,13 @@
-package web
+package worktracker
 
 import (
 	"fmt"
 	"log"
 	"net/http"
-
-	"github.com/cbebe/work-tracker/internal/work"
 )
 
 func RunServer(port int, path string) {
-	service, err := work.NewWorkService(path)
-
+	service, err := NewWorkService(path)
 	if err != nil {
 		log.Fatal(err)
 	}

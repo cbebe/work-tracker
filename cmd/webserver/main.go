@@ -5,7 +5,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/cbebe/work-tracker/internal/web"
+	"github.com/cbebe/worktracker"
 )
 
 func main() {
@@ -14,5 +14,5 @@ func main() {
 	if err != nil {
 		log.Fatalf("port not set: %v", err)
 	}
-	web.RunServer(port, path)
+	worktracker.RunServer(port, path)
 }

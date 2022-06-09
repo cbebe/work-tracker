@@ -1,4 +1,4 @@
-module github.com/cbebe/work-tracker
+module github.com/cbebe/worktracker
 
 go 1.18
 

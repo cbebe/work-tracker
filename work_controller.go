@@ -1,21 +1,19 @@
-package web
+package worktracker
 
 import (
 	"fmt"
 	"net/http"
 	"os"
 	"text/template"
-
-	"github.com/cbebe/work-tracker/internal/work"
 )
 
 type WorkController struct {
-	service *work.WorkService
+	service *WorkService
 	layout  *template.Template
 	http.Handler
 }
 
-func NewWorkController(service *work.WorkService) WorkController {
+func NewWorkController(service *WorkService) WorkController {
 	s := WorkController{
 		service: service,
 		layout:  template.Must(template.ParseFiles("layout.html")),
@@ -47,12 +45,12 @@ func (s WorkController) startWorkHandler(w http.ResponseWriter, r *http.Request)
 
 type WorkPageData struct {
 	PageTitle string
-	Works     []work.Work
+	Works     []Work
 }
 
 func (s WorkController) sendAllWorkHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
-	works, err := s.service.GetWork(work.ID)
+	works, err := s.service.GetWork(ID)
 	if err != nil {
 		handleError(w, err)
 		return
@@ -66,14 +64,14 @@ func (s WorkController) sendAllWorkHandler(w http.ResponseWriter, r *http.Reques
 
 func (s WorkController) getWorkHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	works, err := s.service.GetWork(work.ID)
+	works, err := s.service.GetWork(ID)
 	if err != nil {
 		handleError(w, err)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	work.PrintWorks(w, works)
+	PrintWorks(w, works)
 }
 
 func (s WorkController) stopWorkHandler(w http.ResponseWriter, r *http.Request) {
