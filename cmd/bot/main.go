@@ -10,19 +10,19 @@ import (
 	"time"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/cbebe/work-tracker/pkg/work"
+	"github.com/cbebe/worktracker"
 )
 
 const tokenVar = "DISCORD_TOKEN"
 
 type BotService struct {
-	*work.WorkService
+	*worktracker.WorkService
 	userID string
 }
 
 func newBotService() BotService {
 	path := os.Getenv("DB_PATH")
-	service, err := work.NewWorkService(path)
+	service, err := worktracker.NewWorkService(path)
 	if err != nil {
 		log.Fatalln("Error connecting to database")
 	}
@@ -91,7 +91,7 @@ func (b *BotService) messageCreate(s *discordgo.Session, m *discordgo.MessageCre
 
 func getType(args []string) string {
 	if len(args) < 3 {
-		return work.DefaultType
+		return worktracker.DefaultType
 	} else {
 		return args[2]
 	}
@@ -122,10 +122,10 @@ func (b *BotService) startTask(s *discordgo.Session, m *discordgo.MessageCreate,
 	sendAck(s, m, b.StartLog(t, b.id(m)), t, "Started ")
 }
 
-func (b *BotService) sortLogs(works []work.Work) ([]work.Line, []work.Work) {
-	logs := make(map[string][]work.Work)
-	unfinished := make([]work.Work, 0)
-	lines := make([]work.Line, 0)
+func (b *BotService) sortLogs(works []worktracker.Work) ([]worktracker.Line, []worktracker.Work) {
+	logs := make(map[string][]worktracker.Work)
+	unfinished := make([]worktracker.Work, 0)
+	lines := make([]worktracker.Line, 0)
 	for _, w := range works {
 		logs[w.Type] = append(logs[w.Type], w)
 	}
@@ -139,14 +139,14 @@ func (b *BotService) sortLogs(works []work.Work) ([]work.Line, []work.Work) {
 			s := time.Unix(int64(v[i].Timestamp), 0)
 			e := time.Unix(int64(v[i+1].Timestamp), 0)
 
-			lines = append(lines, work.Line{
+			lines = append(lines, worktracker.Line{
 				Start:   s,
 				Message: fmt.Sprintf("**%s:** %s to %s - %s", k, format(&s), format(&e), e.Sub(s)),
 			})
 		}
 	}
 
-	work.By(work.StartDate).Sort(lines)
+	worktracker.By(worktracker.StartDate).Sort(lines)
 	return lines, unfinished
 }
 
@@ -160,7 +160,7 @@ func format(t *time.Time) string {
 
 func (b *BotService) getTasks(s *discordgo.Session, m *discordgo.MessageCreate, args []string) {
 	var reply string
-	var works []work.Work
+	var works []worktracker.Work
 	var err error
 
 	if len(args) < 3 {
@@ -169,8 +169,8 @@ func (b *BotService) getTasks(s *discordgo.Session, m *discordgo.MessageCreate, 
 		works, err = b.GetWorkType(args[2], b.id(m))
 	}
 
-	var lines []work.Line
-	unfinished := make([]work.Work, 0)
+	var lines []worktracker.Line
+	unfinished := make([]worktracker.Work, 0)
 	if err != nil {
 		reply = "Error getting work"
 	} else {

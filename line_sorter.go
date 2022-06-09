@@ -1,4 +1,4 @@
-package work
+package worktracker
 
 import (
 	"sort"
@@ -21,7 +21,6 @@ func (by By) Sort(lines []Line) {
 		lines: lines,
 		by:    by,
 	}
-
 	sort.Sort(ls)
 }
 

@@ -1,11 +1,11 @@
 PORT := 5000
 
 web:
-	PORT=$(PORT) go run cmd/webserver/main.go
+	PORT=$(PORT) go run cmd/web_server/main.go
 runbot:
 	go run cmd/bot/main.go
 
-webserver: bin/webserver
+web_server: bin/web_server
 cli: bin/cli
 bot: bin/bot
 bin/%: cmd/%/main.go
@@ -19,13 +19,13 @@ image:
 		--build-arg USER_ID=$(USER_ID) \
 		--build-arg GROUP_ID=$(GROUP_ID) \
 		--build-arg PORT=$(PORT) \
-		-t work-tracker .
+		-t worktracker .
 	
 watch: bin/bot
 	find cmd/ pkg/ .env | entr sh -c '. ./.env && make runbot'
 
 	
 run:
-	docker run -p $(PORT):$(PORT) -v $(PWD)/work.db:/app/work.db work-tracker
+	docker run -p $(PORT):$(PORT) -v $(PWD)/work.db:/app/work.db worktracker
 
 .PHONY: cli webserver web image run
