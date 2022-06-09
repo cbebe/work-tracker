@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/cbebe/work-tracker/pkg/work"
+	"github.com/cbebe/work-tracker/internal/work"
 )
 
 const tokenVar = "DISCORD_TOKEN"

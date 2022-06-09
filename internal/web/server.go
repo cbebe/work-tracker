@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/cbebe/work-tracker/pkg/work"
+	"github.com/cbebe/work-tracker/internal/work"
 )
 
 func RunServer(port int, path string) {
