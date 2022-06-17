@@ -18,6 +18,8 @@ func HandleCommand(args []string, s *WorkService) error {
 			return s.StopLog(args[1], ID)
 		}
 		return s.StopWork()
+	case "list":
+		fallthrough
 	case "get":
 		if len(args) >= 2 {
 			works, err := s.GetWorkType(args[1], ID)
