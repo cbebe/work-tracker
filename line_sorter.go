@@ -6,8 +6,10 @@ import (
 )
 
 type Line struct {
-	Start   time.Time
-	Message string
+	Start    time.Time
+	Type     string
+	Message  string
+	Duration time.Duration
 }
 
 func StartDate(l1, l2 *Line) bool {

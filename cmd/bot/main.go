@@ -79,6 +79,8 @@ func (b *BotService) messageCreate(s *discordgo.Session, m *discordgo.MessageCre
 		return
 	}
 	switch args[1] {
+	case "list":
+		fallthrough
 	case "get":
 		b.getTasks(s, m, args)
 	case "start":
@@ -98,10 +100,15 @@ func getType(args []string) string {
 }
 
 func sendAck(s *discordgo.Session, m *discordgo.MessageCreate, e error, t string, action string) {
+	var message string
 	if e != nil {
-		s.ChannelMessageSend(m.ChannelID, e.Error())
+		message = e.Error()
 	} else {
-		s.ChannelMessageSend(m.ChannelID, fmt.Sprint(action, t))
+		message = fmt.Sprint(action, t)
+	}
+	_, err := s.ChannelMessageSend(m.ChannelID, message)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "send ack:", err)
 	}
 }
 
@@ -138,10 +145,12 @@ func (b *BotService) sortLogs(works []worktracker.Work) ([]worktracker.Line, []w
 			}
 			s := time.Unix(int64(v[i].Timestamp), 0)
 			e := time.Unix(int64(v[i+1].Timestamp), 0)
-
+			d := e.Sub(s)
 			lines = append(lines, worktracker.Line{
-				Start:   s,
-				Message: fmt.Sprintf("**%s:** %s to %s - %s", k, format(&s), format(&e), e.Sub(s)),
+				Start:    s,
+				Type:     k,
+				Message:  fmt.Sprintf("**%s:** %s to %s - %s", k, format(&s), format(&e), d),
+				Duration: d,
 			})
 		}
 	}
@@ -171,12 +180,14 @@ func (b *BotService) getTasks(s *discordgo.Session, m *discordgo.MessageCreate, 
 
 	var lines []worktracker.Line
 	unfinished := make([]worktracker.Work, 0)
+	total := make(map[string]time.Duration)
 	if err != nil {
 		reply = "Error getting work"
 	} else {
 		lines, unfinished = b.sortLogs(works)
 		for i, l := range lines {
 			reply += fmt.Sprintf("%d. %s\n", i+1, l.Message)
+			total[l.Type] += l.Duration
 		}
 	}
 	if reply == "" && len(unfinished) == 0 {
@@ -188,11 +199,26 @@ func (b *BotService) getTasks(s *discordgo.Session, m *discordgo.MessageCreate, 
 		Description: reply,
 	}
 
+	if len(total) > 0 {
+		embed.Fields = append(embed.Fields, &discordgo.MessageEmbedField{
+			Name:  "Total Time",
+			Value: "Per category:",
+		})
+		for k, v := range total {
+			embed.Fields = append(embed.Fields, &discordgo.MessageEmbedField{
+				Name:   k,
+				Value:  v.String(),
+				Inline: true,
+			})
+		}
+	}
+
 	if len(unfinished) > 0 {
 		v := ""
 		for i, w := range unfinished {
 			t := time.Unix(int64(w.Timestamp), 0)
-			v += fmt.Sprintf("%d. **%s**: Started %s\n", i+1, w.Type, format(&t))
+			d := time.Unix(time.Now().Unix(), 0).Sub(t)
+			v += fmt.Sprintf("%d. **%s**: Started %s - %s\n", i+1, w.Type, format(&t), d)
 		}
 		embed.Fields = append(embed.Fields, &discordgo.MessageEmbedField{
 			Name:  "Unfinished Logs",
@@ -200,7 +226,11 @@ func (b *BotService) getTasks(s *discordgo.Session, m *discordgo.MessageCreate, 
 		})
 	}
 
-	s.ChannelMessageSendEmbed(m.ChannelID, &embed)
+	_, err = s.ChannelMessageSendEmbed(m.ChannelID, &embed)
+
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "get tasks:", err)
+	}
 }
 
 func getArgs(s string) []string {
