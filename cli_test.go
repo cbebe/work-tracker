@@ -9,6 +9,7 @@ import (
 )
 
 type WorkServiceSpy struct {
+	err error
 	*WorkService
 	CalledStartWork   bool
 	CalledStopWork    bool
@@ -22,32 +23,32 @@ type WorkServiceSpy struct {
 
 func (w *WorkServiceSpy) StartWork() error {
 	w.CalledStartWork = true
-	return nil
+	return w.err
 }
 
 func (w *WorkServiceSpy) StopWork() error {
 	w.CalledStopWork = true
-	return nil
+	return w.err
 }
 
 func (w *WorkServiceSpy) StartLog(t, u string) error {
 	w.CalledStartLog = t
-	return nil
+	return w.err
 }
 
 func (w *WorkServiceSpy) StopLog(t, u string) error {
 	w.CalledStopLog = t
-	return nil
+	return w.err
 }
 
 func (w *WorkServiceSpy) GetWork(u string) ([]Work, error) {
 	w.CalledGetWork = true
-	return []Work{}, nil
+	return []Work{}, w.err
 }
 
 func (w *WorkServiceSpy) GetWorkType(t, u string) ([]Work, error) {
 	w.CalledGetWorkType = t
-	return []Work{}, nil
+	return []Work{}, w.err
 }
 
 func TestHandleCommand_Usage(t *testing.T) {

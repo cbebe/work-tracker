@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-type Service interface {
+type commandService interface {
 	StartWork() error
 	StopWork() error
 	StartLog(t, u string) error
@@ -18,7 +18,7 @@ func printUsage(p string) error {
 	return fmt.Errorf("USAGE: %s start|stop|get [type]", p)
 }
 
-func HandleCommand(w io.Writer, a []string, s Service) error {
+func HandleCommand(w io.Writer, a []string, s commandService) error {
 	if len(a) < 2 {
 		return printUsage(a[0])
 	}

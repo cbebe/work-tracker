@@ -8,7 +8,7 @@ import (
 )
 
 type workHandler struct {
-	service *WorkService
+	service webService
 	layout  PageLayout
 	http.Handler
 }
@@ -17,7 +17,13 @@ type PageLayout interface {
 	Execute(wr io.Writer, data any) error
 }
 
-func NewWorkHandler(service *WorkService, layout PageLayout) *workHandler {
+type webService interface {
+	StartWork() error
+	StopWork() error
+	Store
+}
+
+func NewWorkHandler(service webService, layout PageLayout) *workHandler {
 	s := workHandler{
 		service: service,
 		layout:  layout,
