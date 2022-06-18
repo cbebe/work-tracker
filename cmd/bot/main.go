@@ -21,11 +21,11 @@ type BotService struct {
 }
 
 func newBotService() BotService {
-	path := os.Getenv("DB_PATH")
-	service, err := worktracker.NewWorkService(path)
+	store, err := worktracker.NewStore()
 	if err != nil {
-		log.Fatalln("Error connecting to database")
+		log.Fatalf("error creating work store: %v\n", err)
 	}
+	service := worktracker.NewWorkService(store)
 
 	id := os.Getenv("USER_ID")
 	return BotService{service, id}

@@ -8,11 +8,11 @@ import (
 )
 
 func main() {
-	p := os.Getenv("DB_PATH")
-	s, err := worktracker.NewWorkService(p)
+	store, err := worktracker.NewStore()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("error creating work store: %v\n", err)
 	}
+	s := worktracker.NewWorkService(store)
 	args := os.Args[1:]
 	if len(args) <= 0 {
 		worktracker.PrintUsage()

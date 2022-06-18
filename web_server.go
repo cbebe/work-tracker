@@ -2,42 +2,35 @@ package worktracker
 
 import (
 	"fmt"
-	"log"
+	"io"
 	"net/http"
 	"os"
-	"text/template"
 )
-
-func RunServer(port int, path string) {
-	s, err := NewWorkService(path)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	server := newWorkHandler(s)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), server))
-}
 
 type workHandler struct {
 	service *WorkService
-	layout  *template.Template
+	layout  PageLayout
 	http.Handler
 }
 
-func newWorkHandler(service *WorkService) workHandler {
+type PageLayout interface {
+	Execute(wr io.Writer, data any) error
+}
+
+func NewWorkHandler(service *WorkService, layout PageLayout) *workHandler {
 	s := workHandler{
 		service: service,
-		layout:  template.Must(template.ParseFiles("layout.html")),
+		layout:  layout,
 	}
 
 	router := http.NewServeMux()
-	router.Handle("/all", http.HandlerFunc(s.getWorkHandler))
-	router.Handle("/start", http.HandlerFunc(s.startWorkHandler))
-	router.Handle("/stop", http.HandlerFunc(s.stopWorkHandler))
-	router.Handle("/", http.HandlerFunc(s.sendAllWorkHandler))
+	router.HandleFunc("/all", s.getWorkHandler)
+	router.HandleFunc("/start", s.startWorkHandler)
+	router.HandleFunc("/stop", s.stopWorkHandler)
+	router.HandleFunc("/", s.sendAllWorkHandler)
 	s.Handler = router
 
-	return s
+	return &s
 }
 
 func handleError(w http.ResponseWriter, err error) {
