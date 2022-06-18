@@ -34,7 +34,7 @@ func (s *SqliteStore) GetLatestWork(t, u string) (Work, error) {
 	var work Work
 	r := s.db.Where(&Work{Type: t, UserID: u}).Order("id desc").Limit(1).Find(&work)
 	if work.ID == 0 {
-		return work, &LogDoesNotExistError{t}
+		return work, NewLogDoesNotExistError(t)
 	}
 	return work, r.Error
 }

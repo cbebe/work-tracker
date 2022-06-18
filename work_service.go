@@ -30,7 +30,7 @@ func (w *WorkService) StopLog(t, u string) error {
 		return err
 	}
 	if work.RecordType != Start {
-		return &ExistingLogError{work}
+		return NewExistingLogError(work)
 	}
 	return w.NewWork(Stop, t, u)
 }

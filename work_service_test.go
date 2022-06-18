@@ -1,9 +1,9 @@
-package worktracker
+package worktracker_test
 
 import (
-	"fmt"
 	"testing"
 
+	. "github.com/cbebe/worktracker"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -18,7 +18,7 @@ func (s StoreSpy) GetLatestWork(t, u string) (Work, error) {
 		}
 	}
 
-	return Work{}, fmt.Errorf("Not found")
+	return Work{}, NewLogDoesNotExistError(t)
 }
 
 func (s *StoreSpy) NewWork(r RecordType, t, u string) error {
@@ -66,7 +66,7 @@ func TestWorkService_Start(t *testing.T) {
 		assert.Equal(t, expected, spy.Works[0])
 	})
 
-	t.Run("start error when a log already exists", func(t *testing.T) {
+	t.Run("start error when a log has already started", func(t *testing.T) {
 		spy := StoreSpy{}
 		service := NewWorkService(&spy)
 		expected := Work{
@@ -78,9 +78,12 @@ func TestWorkService_Start(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, expected, spy.Works[0])
 		err = service.StartWork()
-		assert.Error(t, err)
+		expectedErr := NewExistingLogError(expected)
+		assert.Contains(t, err.Error(), expectedErr.Error())
 	})
+}
 
+func TestWorkService_Stop(t *testing.T) {
 	t.Run("create stop", func(t *testing.T) {
 		spy := StoreSpy{}
 		service := NewWorkService(&spy)
@@ -100,6 +103,22 @@ func TestWorkService_Start(t *testing.T) {
 		spy := StoreSpy{}
 		service := NewWorkService(&spy)
 		err := service.StopWork()
-		assert.Error(t, err)
+		expected := NewLogDoesNotExistError(DefaultType)
+		assert.Contains(t, err.Error(), expected.Error())
+	})
+
+	t.Run("stop error when a log has already been stopped", func(t *testing.T) {
+		spy := StoreSpy{}
+		service := NewWorkService(&spy)
+		service.StartWork()
+		service.StopWork()
+		err := service.StopWork()
+
+		expected := NewExistingLogError(Work{
+			RecordType: Stop,
+			Type:       DefaultType,
+			UserID:     ID,
+		})
+		assert.Contains(t, err.Error(), expected.Error())
 	})
 }

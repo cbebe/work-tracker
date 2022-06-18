@@ -22,6 +22,14 @@ func exists(r RecordType) string {
 	return "n/a:"
 }
 
+func NewExistingLogError(work Work) error {
+	return &ExistingLogError{work}
+}
+
+func NewLogDoesNotExistError(t string) error {
+	return &LogDoesNotExistError{t}
+}
+
 func (e *LogDoesNotExistError) Error() string {
 	return fmt.Sprintln("log type does not exist:", e.Type)
 }
