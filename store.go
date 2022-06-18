@@ -19,10 +19,8 @@ func NewStore() (Store, error) {
 	default:
 		p := os.Getenv("DB_PATH")
 		if p == "" {
-			if p == "" {
-				fmt.Println("Using default db path:", DefaultDBPath)
-				p = DefaultDBPath
-			}
+			fmt.Println("Using default db path:", DefaultDBPath)
+			p = DefaultDBPath
 		}
 		return NewSqliteWorkStore(p)
 	}
