@@ -2,52 +2,52 @@ package worktracker
 
 import (
 	"fmt"
-	"log"
+	"io"
 	"net/http"
-	"os"
-	"text/template"
 )
 
-func RunServer(port int, path string) {
-	s, err := NewWorkService(path)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	server := newWorkHandler(s)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), server))
-}
-
 type workHandler struct {
-	service *WorkService
-	layout  *template.Template
+	output  io.Writer
+	service webService
+	layout  PageLayout
 	http.Handler
 }
 
-func newWorkHandler(service *WorkService) workHandler {
+type PageLayout interface {
+	Execute(wr io.Writer, data any) error
+}
+
+type webService interface {
+	StartWork() error
+	StopWork() error
+	Store
+}
+
+func NewWorkHandler(output io.Writer, service webService, layout PageLayout) *workHandler {
 	s := workHandler{
+		output:  output,
 		service: service,
-		layout:  template.Must(template.ParseFiles("layout.html")),
+		layout:  layout,
 	}
 
 	router := http.NewServeMux()
-	router.Handle("/all", http.HandlerFunc(s.getWorkHandler))
-	router.Handle("/start", http.HandlerFunc(s.startWorkHandler))
-	router.Handle("/stop", http.HandlerFunc(s.stopWorkHandler))
-	router.Handle("/", http.HandlerFunc(s.sendAllWorkHandler))
+	router.HandleFunc("/all", s.getWorkHandler)
+	router.HandleFunc("/start", s.startWorkHandler)
+	router.HandleFunc("/stop", s.stopWorkHandler)
+	router.HandleFunc("/", s.sendAllWorkHandler)
 	s.Handler = router
 
-	return s
+	return &s
 }
 
-func handleError(w http.ResponseWriter, err error) {
-	fmt.Fprint(os.Stdout, err)
+func (s *workHandler) handleError(w http.ResponseWriter, err error) {
+	fmt.Fprint(s.output, err)
 	w.WriteHeader(http.StatusInternalServerError)
 }
 
 func (s *workHandler) startWorkHandler(w http.ResponseWriter, r *http.Request) {
 	if err := s.service.StartWork(); err != nil {
-		handleError(w, err)
+		s.handleError(w, err)
 		return
 	}
 
@@ -63,7 +63,7 @@ func (s *workHandler) sendAllWorkHandler(w http.ResponseWriter, r *http.Request)
 	w.Header().Set("Content-Type", "text/html")
 	works, err := s.service.GetWork(ID)
 	if err != nil {
-		handleError(w, err)
+		s.handleError(w, err)
 		return
 	}
 	data := workPageData{
@@ -77,7 +77,7 @@ func (s *workHandler) getWorkHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	works, err := s.service.GetWork(ID)
 	if err != nil {
-		handleError(w, err)
+		s.handleError(w, err)
 		return
 	}
 
@@ -87,7 +87,7 @@ func (s *workHandler) getWorkHandler(w http.ResponseWriter, r *http.Request) {
 
 func (s workHandler) stopWorkHandler(w http.ResponseWriter, r *http.Request) {
 	if err := s.service.StopWork(); err != nil {
-		handleError(w, err)
+		s.handleError(w, err)
 		return
 	}
 

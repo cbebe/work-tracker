@@ -2,11 +2,28 @@ package worktracker
 
 import (
 	"fmt"
-	"os"
+	"io"
 	"strings"
 )
 
-func HandleCommand(args []string, s *WorkService) error {
+type commandService interface {
+	StartWork() error
+	StopWork() error
+	StartLog(t, u string) error
+	StopLog(t, u string) error
+	Store
+}
+
+func printUsage(p string) error {
+	return fmt.Errorf("USAGE: %s start|stop|get [type]", p)
+}
+
+func HandleCommand(w io.Writer, a []string, s commandService) error {
+	if len(a) < 2 {
+		return printUsage(a[0])
+	}
+
+	args := a[1:]
 	switch strings.ToLower(args[0]) {
 	case "start":
 		if len(args) >= 2 {
@@ -24,21 +41,16 @@ func HandleCommand(args []string, s *WorkService) error {
 		if len(args) >= 2 {
 			works, err := s.GetWorkType(args[1], ID)
 			if works != nil {
-				PrintWorks(os.Stdout, works)
+				PrintWorks(w, works)
 			}
 			return err
 		}
 		works, err := s.GetWork(ID)
 		if works != nil {
-			PrintWorks(os.Stdout, works)
+			PrintWorks(w, works)
 		}
 		return err
 	default:
-		PrintUsage()
-		return nil
+		return printUsage(a[0])
 	}
-}
-
-func PrintUsage() {
-	fmt.Println("USAGE:", os.Args[0], "start|stop|get [type]")
 }

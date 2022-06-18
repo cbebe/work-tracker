@@ -8,15 +8,12 @@ import (
 )
 
 func main() {
-	p := os.Getenv("DB_PATH")
-	s, err := worktracker.NewWorkService(p)
+	store, err := worktracker.NewStore(worktracker.GetPath(os.Stdout))
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("error creating work store: %v\n", err)
 	}
-	args := os.Args[1:]
-	if len(args) <= 0 {
-		worktracker.PrintUsage()
-	} else if err := worktracker.HandleCommand(args, s); err != nil {
-		log.Fatal(err)
+	s := worktracker.NewWorkService(store)
+	if err := worktracker.HandleCommand(os.Stdout, os.Args, s); err != nil {
+		log.Fatalln(err)
 	}
 }

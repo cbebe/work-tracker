@@ -24,6 +24,11 @@ image:
 watch: bin/bot
 	find cmd/ pkg/ .env | entr sh -c '. ./.env && make runbot'
 
+cover:
+	go test -coverprofile=coverage.out
+	go tool cover -html=coverage.out
+	rm coverage.out
+
 	
 run:
 	docker run -p $(PORT):$(PORT) -v $(PWD)/work.db:/app/work.db worktracker
