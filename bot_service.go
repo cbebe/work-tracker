@@ -37,6 +37,9 @@ func NewBotService(service BotWorkService, config *BotServiceConfig) *BotService
 	return &BotService{service, config}
 }
 
+const ERROR_GETTING_WORK = "Error getting work"
+const NO_LOGS_FOUND = "No logs found"
+
 func (b *BotService) GetTasks(args []string, userID string, username string) *discordgo.MessageEmbed {
 	var reply string
 	var works []Work
@@ -52,7 +55,7 @@ func (b *BotService) GetTasks(args []string, userID string, username string) *di
 	unfinished := make([]Work, 0)
 	total := make(map[string]time.Duration)
 	if err != nil {
-		reply = "Error getting work"
+		reply = ERROR_GETTING_WORK
 	} else {
 		lines, unfinished = b.sortLogs(works)
 		for i, l := range lines {
@@ -61,7 +64,7 @@ func (b *BotService) GetTasks(args []string, userID string, username string) *di
 		}
 	}
 	if reply == "" && len(unfinished) == 0 {
-		reply = "No logs found"
+		reply = NO_LOGS_FOUND
 	}
 
 	embed := discordgo.MessageEmbed{
