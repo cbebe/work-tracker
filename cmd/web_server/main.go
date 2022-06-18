@@ -16,7 +16,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("port not set: %v", err)
 	}
-	store, err := worktracker.NewStore()
+	store, err := worktracker.NewStore(worktracker.GetPath(os.Stdout))
 	if err != nil {
 		log.Fatalf("error creating work store: %v\n", err)
 	}

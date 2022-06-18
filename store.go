@@ -2,7 +2,11 @@ package worktracker
 
 import (
 	"fmt"
+	"io"
 	"os"
+
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
 )
 
 type Store interface {
@@ -12,16 +16,24 @@ type Store interface {
 	GetWork(u string) ([]Work, error)
 }
 
-func NewStore() (Store, error) {
-	t := os.Getenv("DB_TYPE")
+func GetPath(w io.Writer) string {
+	p := os.Getenv("DB_PATH")
+	if p == "" {
+		fmt.Fprintln(w, "Using default db path:", DefaultDBPath)
+		return DefaultDBPath
+	}
+	return p
+}
 
+func NewStore(p string) (Store, error) {
+	t := os.Getenv("DB_TYPE")
 	switch t {
 	default:
-		p := os.Getenv("DB_PATH")
-		if p == "" {
-			fmt.Println("Using default db path:", DefaultDBPath)
-			p = DefaultDBPath
+		db, err := gorm.Open(sqlite.Open(p), &gorm.Config{})
+		if err != nil {
+			return nil, fmt.Errorf("failed to connect to database: %v", err)
 		}
-		return NewSqliteWorkStore(p)
+		db.AutoMigrate(&Work{})
+		return NewGORMWorkStore(db), nil
 	}
 }

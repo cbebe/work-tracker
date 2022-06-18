@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	store, err := worktracker.NewStore()
+	store, err := worktracker.NewStore(worktracker.GetPath(os.Stdout))
 	if err != nil {
 		log.Fatalf("error creating work store: %v\n", err)
 	}
