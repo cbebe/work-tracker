@@ -1,6 +1,7 @@
 package worktracker_test
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"net/http"
@@ -66,7 +67,8 @@ func serveRequest(t testing.TB, p string, code int, err error) *WorkServiceSpy {
 	t.Helper()
 	s := &WorkServiceSpy{err: err}
 	l := &LayoutSpy{}
-	h := NewWorkHandler(s, l)
+	b := &bytes.Buffer{}
+	h := NewWorkHandler(b, s, l)
 	response := httptest.NewRecorder()
 	h.ServeHTTP(response, newGetRequest(p))
 	assert.Equal(t, response.Code, code)

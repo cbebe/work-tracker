@@ -22,6 +22,6 @@ func main() {
 	}
 	s := worktracker.NewWorkService(store)
 
-	server := worktracker.NewWorkHandler(s, template.Must(template.ParseFiles("layout.html")))
+	server := worktracker.NewWorkHandler(os.Stdout, s, template.Must(template.ParseFiles("layout.html")))
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), server))
 }

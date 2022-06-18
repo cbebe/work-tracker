@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 )
 
 type workHandler struct {
+	output  io.Writer
 	service webService
 	layout  PageLayout
 	http.Handler
@@ -23,8 +23,9 @@ type webService interface {
 	Store
 }
 
-func NewWorkHandler(service webService, layout PageLayout) *workHandler {
+func NewWorkHandler(output io.Writer, service webService, layout PageLayout) *workHandler {
 	s := workHandler{
+		output:  output,
 		service: service,
 		layout:  layout,
 	}
@@ -39,14 +40,14 @@ func NewWorkHandler(service webService, layout PageLayout) *workHandler {
 	return &s
 }
 
-func handleError(w http.ResponseWriter, err error) {
-	fmt.Fprint(os.Stdout, err)
+func (s *workHandler) handleError(w http.ResponseWriter, err error) {
+	fmt.Fprint(s.output, err)
 	w.WriteHeader(http.StatusInternalServerError)
 }
 
 func (s *workHandler) startWorkHandler(w http.ResponseWriter, r *http.Request) {
 	if err := s.service.StartWork(); err != nil {
-		handleError(w, err)
+		s.handleError(w, err)
 		return
 	}
 
@@ -62,7 +63,7 @@ func (s *workHandler) sendAllWorkHandler(w http.ResponseWriter, r *http.Request)
 	w.Header().Set("Content-Type", "text/html")
 	works, err := s.service.GetWork(ID)
 	if err != nil {
-		handleError(w, err)
+		s.handleError(w, err)
 		return
 	}
 	data := workPageData{
@@ -76,7 +77,7 @@ func (s *workHandler) getWorkHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	works, err := s.service.GetWork(ID)
 	if err != nil {
-		handleError(w, err)
+		s.handleError(w, err)
 		return
 	}
 
@@ -86,7 +87,7 @@ func (s *workHandler) getWorkHandler(w http.ResponseWriter, r *http.Request) {
 
 func (s workHandler) stopWorkHandler(w http.ResponseWriter, r *http.Request) {
 	if err := s.service.StopWork(); err != nil {
-		handleError(w, err)
+		s.handleError(w, err)
 		return
 	}
 
