@@ -13,10 +13,7 @@ func main() {
 		log.Fatalf("error creating work store: %v\n", err)
 	}
 	s := worktracker.NewWorkService(store)
-	args := os.Args[1:]
-	if len(args) <= 0 {
-		worktracker.PrintUsage()
-	} else if err := worktracker.HandleCommand(args, s); err != nil {
-		log.Fatal(err)
+	if err := worktracker.HandleCommand(os.Stdout, os.Args, s); err != nil {
+		log.Fatalln(err)
 	}
 }
