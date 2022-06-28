@@ -37,8 +37,10 @@ func NewBotService(service BotWorkService, config *BotServiceConfig) *BotService
 	return &BotService{service, config}
 }
 
-const ERROR_GETTING_WORK = "Error getting work"
-const NO_LOGS_FOUND = "No logs found"
+const (
+	ERROR_GETTING_WORK = "Error getting work"
+	NO_LOGS_FOUND      = "No logs found"
+)
 
 func (b *BotService) GetTasks(args []string, userID string, username string) *discordgo.MessageEmbed {
 	var reply string
