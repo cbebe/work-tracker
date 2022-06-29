@@ -32,7 +32,6 @@ func initBotService() *DiscordBotService {
 func newDiscordGo(setup func(*discordgo.Session)) (*discordgo.Session, error) {
 	token := os.Getenv(tokenVar)
 	dg, err := discordgo.New("Bot " + token)
-
 	if err != nil {
 		return nil, fmt.Errorf("error creating Discord session, %v", err)
 	}
@@ -52,7 +51,6 @@ func main() {
 	dg, err := newDiscordGo(func(d *discordgo.Session) {
 		d.AddHandler(bot.messageCreate)
 	})
-
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -73,14 +71,14 @@ func (b *DiscordBotService) messageCreate(s *discordgo.Session, m *discordgo.Mes
 	}
 
 	args := getArgs(m.Content)
-	if args[0] != "task" || len(args) < 2 {
+	if strings.ToLower(args[0]) != "task" || len(args) < 2 {
 		return
 	}
 	authorID := b.id(m.Author.ID)
-	if args[1] == "list" || args[1] == "get" {
+	cmd := strings.ToLower(args[1])
+	if cmd == "list" || cmd == "get" {
 		embed := b.GetTasks(args, authorID, m.Author.Username)
 		_, err := s.ChannelMessageSendEmbed(m.ChannelID, embed)
-
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "get tasks:", err)
 		}
